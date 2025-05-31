@@ -1,6 +1,16 @@
 import random
 import tkinter as tk
 import pygame
+import os
+import sys
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        base_path = sys._MEIPASS  # PyInstaller's temp folder
+    except AttributeError:
+        base_path = os.path.abspath(".")  # Normal Python execution
+
+    return os.path.join(base_path, relative_path)
 root = tk.Tk()
 #creating window
 root.geometry("400x500")
@@ -30,8 +40,9 @@ pygame.mixer.init()
 def play_music():
     global pl_music
     try:
+        music_path = resource_path("main-theme-68815.mp3")
         if pl_music:
-            pygame.mixer.music.load("main-theme-68815.mp3")
+            pygame.mixer.music.load(music_path)
             pygame.mixer.music.play(loops=-1)
             pl_music=False
         else:
