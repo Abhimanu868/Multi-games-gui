@@ -29,13 +29,16 @@ rounds_play_label.pack(pady=5)
 pygame.mixer.init()
 def play_music():
     global pl_music
-    if pl_music:
-        pygame.mixer.music.load("main-theme-68815.mp3")
-        pygame.mixer.music.play(loops=0)
-        pl_music=False
-    else:
-        pygame.mixer.music.stop()
-        pl_music=True
+    try:
+        if pl_music:
+            pygame.mixer.music.load("main-theme-68815.mp3")
+            pygame.mixer.music.play(loops=-1)
+            pl_music=False
+        else:
+            pygame.mixer.music.stop()
+            pl_music=True
+    except Exception as e:
+        print("Music error:",e)
 rounds=4
 current_round=0
 def play_game(user_choice):
