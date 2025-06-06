@@ -1,6 +1,5 @@
 import random
 import tkinter as tk
-from tkinter import messagebox
 import pygame
 import os
 import sys
@@ -33,6 +32,24 @@ def apply_to_any_window(win):
             pass
 #music
 pygame.mixer.init()
+def play_music_win():
+    try:
+        pygame.mixer.music.load(resource_path('mixkit-achievement-bell-600.wav')) 
+        pygame.mixer.music.play(loops=0)
+    except:
+        print("Error")
+def loose_music():
+    try:
+        pygame.mixer.music.load(resource_path('mixkit-player-losing-or-failing-2042.wav'))
+        pygame.mixer.music.play(loops=0)
+    except:
+        print('Error')
+def wrong_input():
+    try:
+        pygame.mixer.music.load(resource_path('mixkit-wrong-electricity-buzz-955.wav'))
+        pygame.mixer.music.play(loops=0)
+    except:
+        print("Error")
 def on_click():
     global enable_music
     if enable_music:
@@ -115,10 +132,13 @@ class rockpaperscissor:
             self.decide_winner()
     def decide_winner(self):
         if self.player_score>self.computer_score:
+            play_music_win()
             self.winner_label.config(text='You won the game')
         elif(self.player_score==self.computer_score):
+            loose_music()
             self.winner_label.config(text='Its tie better luck next time')
         else:
+            loose_music()
             self.winner_label.config(text='Computer won the game')
     def reset_game(self):
         self.player_score = 0
@@ -156,7 +176,7 @@ class Hangman:
         self.enter.pack(pady=5)
         self.enter_button = tk.Button(self.roo,text='Enter',width=15,font=('Arial',16,'bold'),command=lambda:[on_click(),self.play_game()])
         self.enter_button.pack(pady=5)
-        self.feedback_label = tk.Label(self.roo,text='')
+        self.feedback_label = tk.Label(self.roo,text='',font=('Arial',16,'bold'))
         self.feedback_label.pack(pady=5)
         self.tries_label = tk.Label(self.roo,text=f'Your tries left: {self.tries}/6')
         self.tries_label.pack(pady=5)
@@ -179,9 +199,11 @@ class Hangman:
         self.enter.delete(0,tk.END)
         if (not guess.isalpha()) or len(guess)!=1:
             self.feedback_label.config(text='Invalid choice!')
+            wrong_input()
             return
         if guess in self.guessed_letters:
             self.feedback_label.config(text='you already guessed')
+            wrong_input()
             return
         self.guessed_letters+=guess
         if guess in self.word:
@@ -191,12 +213,14 @@ class Hangman:
             self.tries_label.config(text=f"Your tries left: {self.tries}/6")
         self.display_update()
         if all(letter in self.guessed_letters for letter in self.word):
-            messagebox.showinfo('You won the game. The word is:',self.word)
+            play_music_win()
+            self.feedback_label.config(text='You won')
             self.enter.config(state='disabled')
             self.enter_button.config(state='disabled')
             return
         if self.tries==0:
-            messagebox.showinfo('OOPS! You Lost this game. Better luck next time. The word was: ',self.word)
+            loose_music()
+            self.feedback_label.config(text=f'You lost. The word was: {self.word}')
             self.enter.config(state='disabled')
             self.enter_button.config(state='disabled')
             return
@@ -213,6 +237,64 @@ class Hangman:
         self.click= on_click()
         destroy = self.roo.destroy
         self.roo.after(300,destroy)
+"Number Guessing"
+class NumberGuessing:
+    def __init__(self):
+        self.number = random.randint(1,100)
+        self.guesses=0
+        self.total_guess = 10
+        self.guess_game = tk.Tk()
+        self.guess_game.title("Number guess game")
+        self.guess_game.geometry("500x500")
+        self.input_label = tk.Label(self.guess_game,text="Enter Number: ",font=('Arial',16,'bold'))
+        self.input_label.pack(pady=5)
+        self.enter_input = tk.Entry(self.guess_game,font=('Arial',16,'bold'))
+        self.enter_input.pack(pady=5)
+        self.guess_button = tk.Button(self.guess_game,text='Enter',width=15,command=lambda:[on_click(),self.enter_number()])
+        self.guess_button.pack(pady=5)
+        self.feedback_label = tk.Label(self.guess_game,text='',font=('Arial',16,'bold'))
+        self.feedback_label.pack(pady=5)
+        self.reset_button = tk.Button(self.guess_game,text='Reset',width=15,command=lambda:[on_click(),self.reset()])
+        self.reset_button.pack(pady=5)
+        self.back_button = tk.Button(self.guess_game,text='Back',width=15,command=self.on_back)
+        self.back_button.pack(pady=5)
+        apply_to_any_window(self.guess_game)
+    def enter_number(self):
+        guess_number = self.enter_input.get()
+        self.enter_input.delete(0,tk.END)
+        if not guess_number.isdigit():
+            wrong_input()
+            self.feedback_label.config(text="Invalid input. Enter a number from 1 to 100.")
+            return
+        guess_number = int(guess_number)
+        if not (1 <= guess_number <= 100):
+            wrong_input()
+            self.feedback_label.config(text="Number must be between 1 and 100.")
+            return
+        self.guesses+=1
+        if guess_number == self.number:
+            play_music_win()
+            self.feedback_label.config(text="Congratulations! You guessed the number!")
+            self.enter_input.config(state='disabled')
+            self.guess_button.config(state='disabled')
+        elif guess_number > self.number:
+            self.feedback_label.config(text="You guessed too high!")
+        else:
+            self.feedback_label.config(text="You guessed too low!")
+        if self.guesses >= self.total_guess:
+            loose_music()
+            self.feedback_label.config(text=f"Game Over! The number was {self.number}")
+            self.enter_input.config(state='disabled')
+            self.guess_button.config(state='disabled')
+    def reset(self):
+        self.guesses=0
+        self.number = random.randint(1,100)
+        self.enter_input.config(state='normal')
+        self.guess_button.config(state='normal')
+        self.feedback_label.config(text='')
+    def on_back(self):
+        on_click()
+        self.guess_game.after(300, self.guess_game.destroy)
 root = tk.Tk()
 root.title('menu')
 root.geometry('500x500')
@@ -220,6 +302,8 @@ rock_game_button = tk.Button(root,text='Rock Paper Scissors',width=15,command=la
 rock_game_button.pack(pady=5)
 hangman_game_button = tk.Button(root,text='Hangman',width=15,command=lambda:[on_click(),Hangman()])
 hangman_game_button.pack(pady=5)
+guessnumber_game_button = tk.Button(root,text="Number guess",width=15,command=lambda:[on_click(),NumberGuessing()])
+guessnumber_game_button.pack(pady=5)
 def open_settings():
     def change_volume(value):
         global music_length
