@@ -1,5 +1,6 @@
 import random
 import tkinter as tk
+from PIL import Image,ImageTk,ImageSequence
 import pygame
 import os
 import sys
@@ -11,6 +12,36 @@ def resource_path(relative_path):
         base_path = os.path.abspath(".")  # Normal Python execution
 
     return os.path.join(base_path, relative_path)
+def victory_image():
+    win = tk.Toplevel()
+    win.geometry('400x400')
+    win.title('Victory')
+    apply_to_any_window(win)
+    label = tk.Label(win)
+    label.pack()
+    image = Image.open(resource_path('victory-16592_256.gif'))
+    frames = [ImageTk.PhotoImage(frame.copy().convert('RGBA')) for frame in ImageSequence.Iterator(image)]
+    win.frames = frames
+    def update(index):
+        frame = win.frames[index]
+        label.config(image=frame)
+        win.after(100,update,(index+1)%len(win.frames))
+    update(0)
+def lost_image():
+    win  = tk.Toplevel()
+    win.geometry('400x400')
+    win.title('Lost')
+    label = tk.Label(win)
+    label.pack()
+    apply_to_any_window(win)
+    image = Image.open(resource_path('skeleton-17532_256.gif'))
+    frames = [ImageTk.PhotoImage(frame.copy().convert('RGBA'))for frame in ImageSequence.Iterator(image)]
+    win.frames = frames
+    def update(index):
+        frame = frames[index]
+        label.config(image=frame)
+        win.after(100,update,(index+1)%len(win.frames))
+    update(0)
 #global scopes
 pl_music = True
 music_length = 0.5
@@ -34,20 +65,20 @@ def apply_to_any_window(win):
 pygame.mixer.init()
 def play_music_win():
     try:
-        pygame.mixer.music.load(resource_path('mixkit-achievement-bell-600.wav')) 
-        pygame.mixer.music.play(loops=0)
+        sound=pygame.mixer.Sound(resource_path('mixkit-achievement-bell-600.wav')) 
+        sound.play()
     except:
         print("Error")
 def loose_music():
     try:
-        pygame.mixer.music.load(resource_path('mixkit-player-losing-or-failing-2042.wav'))
-        pygame.mixer.music.play(loops=0)
+        sound=pygame.mixer.Sound(resource_path('mixkit-player-losing-or-failing-2042.wav'))
+        sound.play()
     except:
         print('Error')
 def wrong_input():
     try:
-        pygame.mixer.music.load(resource_path('mixkit-wrong-electricity-buzz-955.wav'))
-        pygame.mixer.music.play(loops=0)
+        sound=pygame.mixer.Sound(resource_path('mixkit-wrong-electricity-buzz-955.wav'))
+        sound.play()
     except:
         print("Error")
 def on_click():
@@ -134,12 +165,15 @@ class rockpaperscissor:
         if self.player_score>self.computer_score:
             play_music_win()
             self.winner_label.config(text='You won the game')
+            victory_image()
         elif(self.player_score==self.computer_score):
             loose_music()
             self.winner_label.config(text='Its tie better luck next time')
+            lost_image()
         else:
             loose_music()
             self.winner_label.config(text='Computer won the game')
+            lost_image()
     def reset_game(self):
         self.player_score = 0
         self.computer_score=0
@@ -214,12 +248,14 @@ class Hangman:
         self.display_update()
         if all(letter in self.guessed_letters for letter in self.word):
             play_music_win()
+            victory_image()
             self.feedback_label.config(text='You won')
             self.enter.config(state='disabled')
             self.enter_button.config(state='disabled')
             return
         if self.tries==0:
             loose_music()
+            lost_image()
             self.feedback_label.config(text=f'You lost. The word was: {self.word}')
             self.enter.config(state='disabled')
             self.enter_button.config(state='disabled')
@@ -274,6 +310,7 @@ class NumberGuessing:
         self.guesses+=1
         if guess_number == self.number:
             play_music_win()
+            victory_image()
             self.feedback_label.config(text="Congratulations! You guessed the number!")
             self.enter_input.config(state='disabled')
             self.guess_button.config(state='disabled')
@@ -283,6 +320,7 @@ class NumberGuessing:
             self.feedback_label.config(text="You guessed too low!")
         if self.guesses >= self.total_guess:
             loose_music()
+            lost_image()
             self.feedback_label.config(text=f"Game Over! The number was {self.number}")
             self.enter_input.config(state='disabled')
             self.guess_button.config(state='disabled')
@@ -298,6 +336,15 @@ class NumberGuessing:
 root = tk.Tk()
 root.title('menu')
 root.geometry('500x500')
+main_label = tk.Label(root)
+main_label.pack()
+image = Image.open(resource_path('ball-18425_256.gif'))
+frames = [ImageTk.PhotoImage(frame.copy().convert('RGBA')) for frame in ImageSequence.Iterator(image)]
+def update_image(index):
+    frame = frames[index]
+    main_label.config(image=frame)
+    root.after(100,update_image,(index+1)%len(frames))
+update_image(0)
 rock_game_button = tk.Button(root,text='Rock Paper Scissors',width=15,command=lambda:[rockpaperscissor(),on_click()])
 rock_game_button.pack(pady=5)
 hangman_game_button = tk.Button(root,text='Hangman',width=15,command=lambda:[on_click(),Hangman()])
